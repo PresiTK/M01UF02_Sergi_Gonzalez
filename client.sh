@@ -15,7 +15,7 @@ echo "Client DMAM 2022"
 
 echo "1. ENVÍO DE HEADER"
 
-echo "DMAM $CLIENT_IP" | nc localhost $PORT
+echo "DMAM $CLIENT_IP" | nc 27.0.0.1 $PORT
 
 DATA=`nc -l $PORT`
 
@@ -25,6 +25,7 @@ then
     echo "ERROR 1: Error Enviando el Header"
     exit 1
 fi
+
 echo "4. FILENAME: Enviando"
 
 FILENAME="dragon.txt"
@@ -40,6 +41,7 @@ then
     echo "ERROR 2:Envio incorrecto de FILENAME"
     exit 2
 fi
+
 echo "8. ENVIO DE CONTENIDO"
 
 cat "client/$FILENAME" | nc $SERVER_IP $PORT
