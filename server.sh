@@ -1,0 +1,81 @@
+#!/bin/bash
+
+PORT="2022"
+
+echo "DMAM 2022 Server"
+
+echo "0. ESCUCHANDO CLIENT"
+
+DATA=`nc -l $PORT`
+
+HEADER=`echo "$DATA" | cut -d " " -f 1`
+IP=`echo $DATA | cut -d " " -f 2`
+
+if [ "$HEADER" != "DMAM" ]
+then
+    echo "ERROR 1: HEADER incorrecta"
+    echo "HEADER_KO" | nc $IP $PORT
+    exit 1
+fi
+
+echo "Client IP: $IP"
+
+echo "2. CHECK - Enviando HEADER_OK"
+echo "HEADER_OK" | nc $IP $PORT
+DATA=`nc -l $PORT`
+
+echo "5. COMPROBANDO"
+
+PREFIX=`echo "$DATA" | cut -d ' ' -f 1`
+FILENAME=`echo "$DATA" | cut -d ' ' -f 2`
+OBTAINED_MD5=`echo "$DATA" | cut -d ' ' -f 3`
+
+if [ "$PREFIX" != "FILENAME" ]
+then
+    echo "ERROR 2: PREFIX incorrecto"
+    echo "FILENAME_KO" | nc $IP $PORT
+    exit 2
+fi
+
+GENERATED_MD5=`echo -n "$FILENAME" | md5sum | cut -d ' ' -f 1`
+
+if [ "$GENERATED_MD5" != "$OBTAINED_MD5" ]
+then
+    echo "ERROR 3: Hash incorrecto"
+    echo "FILENAME_MD5_KO" | nc $IP $PORT
+    exit 3
+fi
+
+echo "6. ENVIO FILENAME_OK"
+echo "FILENAME_OK" | nc $IP $PORT
+
+DATA=`nc -l $PORT`
+
+echo "9. Recibiendo FILENAME"
+mkdir -p server
+echo "$DATA" > "server/$FILENAME"
+
+echo "10. HASH DEL CONTENIDO ESPERANDO..."
+
+DATA=`nc -l $PORT`
+PREFIX=`echo "$DATA" | cut -d ' ' -f 1`
+OBTAINED_FILE_MD5=`echo "$DATA" | cut -d ' ' -f 2`
+
+if [ "$PREFIX" != "FILE_MD5" ]
+then
+    echo "ERROR 4: PREFIX de HASH"
+    echo "FILE_MD5_KO" | nc $IP $PORT
+    exit 4
+fi
+
+GENERATED_FILE_MD5=`md5sum "server/$FILENAME" | cut -d ' ' -f 1`
+
+if [ "$GENERATED_FILE_MD5" != "$OBTAINED_FILE_MD5" ]
+then
+    echo "ERROR 5: HASH diferente"
+    echo "FILE_MD5_KO" | nc $IP $PORT
+    exit 5
+fi
+
+echo "12. ENVIANDO FILE_MD5_OK"
+echo "FILE_MD5_OK" | nc $IP $PORT
