@@ -15,7 +15,7 @@ echo "Client DMAM 2022"
 
 echo "1. ENVÍO DE HEADER"
 
-echo "DMAM $CLIENT_IP" | nc $SERVER_IP $PORT
+echo "DMAM $CLIENT_IP" | nc -q 0 $SERVER_IP $PORT
 
 DATA=`nc -l $PORT`
 
@@ -31,7 +31,7 @@ echo "4. FILENAME: Enviando"
 FILENAME="dragon.txt"
 FILENAME_MD5=`echo -n "$FILENAME" | md5sum | cut -d ' ' -f 1`
 
-echo "FILENAME $FILENAME $FILENAME_MD5" | nc $SERVER_IP $PORT
+echo "FILENAME $FILENAME $FILENAME_MD5" | nc -q 0 $SERVER_IP $PORT
 
 echo "7.COMPROBACION FILENAME"
 DATA=`nc -l $PORT`
@@ -44,12 +44,12 @@ fi
 
 echo "8. ENVIO DE CONTENIDO"
 
-cat "client/$FILENAME" | nc $SERVER_IP $PORT
+cat "client/$FILENAME" | nc -q 0 $SERVER_IP $PORT
 
 echo "11. ENVIANDO HASH"
 
 FILECONTENT_MD5=`md5sum "client/$FILENAME" | cut -d ' ' -f 1`
-echo "FILE_MD5 $FILECONTENT_MD5" | nc $SERVER_IP $PORT
+echo "FILE_MD5 $FILECONTENT_MD5" | nc -q 0 $SERVER_IP $PORT
 
 DATA=`nc -l $PORT`
 
